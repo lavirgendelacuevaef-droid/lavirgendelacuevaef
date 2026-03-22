@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parchís EF - Definitivo</title>
+    <style>
+        :root {
+            --yellow: #fdd835;
+            --blue: #1e88e5;
+            --red: #e53935;
+            --green: #43a047;
+            --bg: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            user-select: none;
+        }
+
+        /* --- PANEL SUPERIOR --- */
+        .panel {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #333;
+            width: 90%;
+            max-width: 600px;
+            z-index: 100;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .turn-badge {
+            font-size: 1.2rem;
+            font-weight: 800;
+            padding: 8px 20px;
+            color: white;
+            border-radius: 50px;
+            text-transform: uppercase;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dice {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #fff;
+            font-weight: bold;
+        }
+
+        button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:disabled { background: #ccc; cursor: default; }
+
+        .msg { font-weight: bold; color: #555; margin-top: 10px; min-height: 20px; }
+
+        /* --- TABLERO --- */
+        .board-container {
+            position: relative;
+            width: 95vmin;
+            height: 95vmin;
+            max-width: 650px;
+            max-height: 650px;
+            background: white;
+            border: 5px solid #333;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Casas */
+        .home {
+            grid-row: span 6;
+            grid-column: span 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            border: 1px solid #999;
+        }
+        .h-red { background: var(--red); grid-column: 1/7; grid-row: 1/7; }
+        .h-blue { background: var(--blue); grid-column: 10/16; grid-row: 1/7; }
+        .h-green { background: var(--green); grid-column: 1/7; grid-row: 10/16; }
+        .h-yellow { background: var(--yellow); grid-column: 10/16; grid-row: 10/16; color: #333; }
+
+        /* Meta Central */
+        .center {
+            grid-column: 7/10;
+            grid-row: 7/10;
+            position: relative;
+            background: conic-gradient(
+                var(--red) 0deg 90deg, 
+                var(--blue) 90deg 180deg, 
+                var(--yellow) 180deg 270deg, 
+                var(--green) 270deg 360deg
+            );
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .center::after {
+            content: "META";
+            background: white;
+            padding: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* Casillas */
+        .cell {
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 0.7rem;
+            color: #ccc;
+            background: white;
+        }
+        
+        /* Salidas (Start) */
+        .start-spot { font-weight: bold; border: 2px solid #555; color: #333; font-size: 1.2rem; }
+        .bg-start-y { background-color: #fff9c4; border-color: var(--yellow); }
+        .bg-start-b { background-color: #bbdefb; border-color: var(--blue); }
+        .bg-start-r { background-color: #ffcdd2; border-color: var(--red); }
+        .bg-start-g { background-color: #c8e6c9; border-color: var(--green); }
+
+        /* Pasillos finales */
+        .path-final { border: none; }
+        .pf-red { background: #ffcdd2; }
+        .pf-blue { background: #bbdefb; }
+        .pf-green { background: #c8e6c9; }
+        .pf-yellow { background: #fff9c4; }
+
+        /* --- FICHAS (TAMAÑO REAL CORREGIDO) --- */
+        .token {
+            /* Usamos vmin para que sea relativa al tablero, no a la celda */
+            width: 4vmin; 
+            height: 4vmin;
+            /* Topes en píxeles para que no sea ni microscópica ni gigante */
+            max-width: 30px;
+            max-height: 30px;
+            min-width: 15px;
+            min-height: 15px;
+            
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+            position: absolute; /* Importante para que no deforme la celda */
+            z-index: 50;
+            pointer-events: none; /* Click pasa a través */
+            transition: all 0.4s ease;
+            
+            /* Centrado absoluto dentro de la celda */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .tk-red { background: var(--red); }
+        .tk-blue { background: var(--blue); }
+        .tk-green { background: var(--green); }
+        .tk-yellow { background: var(--yellow); }
+
+        /* Helpers */
+        .bg-y { background: var(--yellow); color: #333; }
+        .bg-b { background: var(--blue); }
+        .bg-r { background: var(--red); }
+        .bg-g { background: var(--green); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 450px;
+            border: 4px solid #333;
+            animation: pop 0.3s;
+        }
+        @keyframes pop { from{transform:scale(0.5);} to{transform:scale(1);} }
+        .m-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        .m-title { font-size: 1.5rem; font-weight: bold; color: #d32f2f; margin-bottom: 10px; text-transform: uppercase; }
+        .m-text { font-size: 1.3rem; margin-bottom: 20px; }
+        .btn-ok { background: #4caf50; color: white; border: none; padding: 10px 40px; font-size: 1.2rem; border-radius: 8px; cursor: pointer; }
+        
+        .shake { animation: shake 0.4s; background: #ffcdd2 !important; }
+        @keyframes shake { 0%,100%{transform: translateX(0);} 25%{transform: translateX(-5px);} 75%{transform: translateX(5px);} }
+
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <div class="info">
+            <div id="turnBadge" class="turn-badge bg-y">AMARILLO</div>
+            <div style="font-weight: bold; color:#777;">PARCHÍS DE AULA</div>
+        </div>
+        <div class="controls">
+            <div id="diceBox" class="dice">🎲</div>
+            <button id="rollBtn" onclick="game.roll()">Tirar Dado</button>
+        </div>
+        <div id="msgBox" class="msg">¡Turno Amarillo! Tira el dado.</div>
+    </div>
+
+    <div class="board-container">
+        <div id="grid" class="grid">
+            <div class="house h-red">ROJO</div>
+            <div class="house h-blue">AZUL</div>
+            <div class="house h-green">VERDE</div>
+            <div class="house h-yellow">AMARILLO</div>
+            
+            <div class="center" onclick="game.checkMeta()"></div>
+
+            </div>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-card">
+            <span id="mIcon" class="m-icon">⚡</span>
+            <div id="mTitle" class="m-title">PRUEBA</div>
+            <div id="mText" class="m-text">...</div>
+            <button class="btn-ok" onclick="game.closeModal()">¡HECHO!</button>
+        </div>
+    </div>
+
+<script>
+    // --- DATOS DEL TABLERO ---
+    // Perímetro (52 casillas). Índices:
+    // 0 = Salida Amarillo. 13 = Salida Azul. 26 = Salida Rojo. 39 = Salida Verde.
+    const perimeter = [
+        // Brazo Amarillo (Sube)
+        {x:9,y:15}, {x:9,y:14}, {x:9,y:13}, {x:9,y:12}, {x:9,y:11}, {x:9,y:10}, 
+        // Brazo Amarillo (Derecha)
+        {x:10,y:9}, {x:11,y:9}, {x:12,y:9}, {x:13,y:9}, {x:14,y:9}, {x:15,y:9},
+        {x:15,y:8}, // Esquina
+        // Brazo Azul (Izquierda)
+        {x:15,y:7}, {x:14,y:7}, {x:13,y:7}, {x:12,y:7}, {x:11,y:7}, {x:10,y:7},
+        // Brazo Azul (Sube)
+        {x:9,y:6}, {x:9,y:5}, {x:9,y:4}, {x:9,y:3}, {x:9,y:2}, {x:9,y:1},
+        {x:8,y:1}, // Esquina
+        // Brazo Rojo (Baja)
+        {x:7,y:1}, {x:7,y:2}, {x:7,y:3}, {x:7,y:4}, {x:7,y:5}, {x:7,y:6},
+        // Brazo Rojo (Izquierda)
+        {x:6,y:7}, {x:5,y:7}, {x:4,y:7}, {x:3,y:7}, {x:2,y:7}, {x:1,y:7},
+        {x:1,y:8}, // Esquina
+        // Brazo Verde (Derecha)
+        {x:1,y:9}, {x:2,y:9}, {x:3,y:9}, {x:4,y:9}, {x:5,y:9}, {x:6,y:9},
+        // Brazo Verde (Baja)
+        {x:7,y:10}, {x:7,y:11}, {x:7,y:12}, {x:7,y:13}, {x:7,y:14}, {x:7,y:15},
+        {x:8,y:15} // Esquina
+    ];
+
+    const finals = {
+        yellow: [{x:8,y:14}, {x:8,y:13}, {x:8,y:12}, {x:8,y:11}, {x:8,y:10}],
+        blue:   [{x:14,y:8}, {x:13,y:8}, {x:12,y:8}, {x:11,y:8}, {x:10,y:8}],
+        red:    [{x:8,y:2}, {x:8,y:3}, {x:8,y:4}, {x:8,y:5}, {x:8,y:6}],
+        green:  [{x:2,y:8}, {x:3,y:8}, {x:4,y:8}, {x:5,y:8}, {x:6,y:8}]
+    };
+
+    // --- RETOS ---
+    const challenges = [
+        {i:"🤸", t:"Haz el puente o la voltereta lateral."},
+        {i:"🧻", t:"Ponte una hoja en la cabeza y siéntate sin que caiga."},
+        {i:"🦵", t:"10 Sentadillas contando en voz alta."},
+        {i:"🗿", t:"Estatua: Pose divertida 10 segundos."},
+        {i:"🗑️", t:"Encesta una bola de papel en la papelera."},
+        {i:"🤖", t:"Camina como un robot saludando."},
+        {i:"🦶", t:"Salta a la pata coja dando una vuelta."},
+        {i:"💃", t:"Inventa un paso de baile."},
+        {i:"🐢", t:"Carrera a cámara lenta hasta la pared."},
+        {i:"💪", t:"5 Flexiones (apoyando rodillas)."},
+        {i:"🎤", t:"Canta el estribillo de una canción."},
+        {i:"🐱", t:"Anda a cuatro patas como un gato."},
+        {i:"🤝", t:"Choca los cinco con tu equipo."}
+    ];
+    const bigFinal = {i:"🏆", t:"¡GRAN VICTORIA! ¡Haced un grito de guerra!"};
+
+    // --- JUEGO ---
+    const game = {
+        turn: 0,
+        diceVal: 0,
+        waiting: false,
+        players: [
+            // startIdx: Dónde empieza en el array 'perimeter'
+            // pos: 0 significa que está en el inicio
+            { id: 'yellow', name: 'AMARILLO', color: 'yellow', css: 'tk-yellow', badge:'bg-y', startIdx: 0, pos: 0, state: 'perimeter' },
+            { id: 'blue', name: 'AZUL', color: 'blue', css: 'tk-blue', badge:'bg-b', startIdx: 13, pos: 0, state: 'perimeter' },
+            { id: 'red', name: 'ROJO', color: 'red', css: 'tk-red', badge:'bg-r', startIdx: 26, pos: 0, state: 'perimeter' },
+            { id: 'green', name: 'VERDE', color: 'green', css: 'tk-green', badge:'bg-g', startIdx: 39, pos: 0, state: 'perimeter' }
+        ],
+
+        init: function() {
+            this.drawBoard();
+            this.renderTokens();
+        },
+
+        drawBoard: function() {
+            const grid = document.getElementById('grid');
+            
+            // Perímetro
+            perimeter.forEach((coord, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.gridColumn = coord.x;
+                cell.style.gridRow = coord.y;
+                
+                // Marcar salidas (Estrellas)
+                if(i===0) { cell.classList.add('start-spot', 'bg-start-y'); cell.innerHTML="★"; }
+                else if(i===13) { cell.classList.add('start-spot', 'bg-start-b'); cell.innerHTML="★"; }
+                else if(i===26) { cell.classList.add('start-spot', 'bg-start-r'); cell.innerHTML="★"; }
+                else if(i===39) { cell.classList.add('start-spot', 'bg-start-g'); cell.innerHTML="★"; }
+                else { cell.innerText = i+1; }
+
+                cell.id = `p-${i}`;
+                cell.onclick = () => this.clickCell(`p-${i}`);
+                grid.appendChild(cell);
+            });
+
+            // Pasillos
+            const drawP = (arr, pre, cls) => {
+                arr.forEach((coord, i) => {
+                    const c = document.createElement('div');
+                    c.className = `cell final-path ${cls}`;
+                    c.style.gridColumn = coord.x;
+                    c.style.gridRow = coord.y;
+                    c.id = `${pre}-${i}`;
+                    c.onclick = () => this.clickCell(`${pre}-${i}`);
+                    grid.appendChild(c);
+                });
+            };
+            drawP(finals.yellow, 'fy', 'pf-yellow');
+            drawP(finals.blue, 'fb', 'pf-blue');
+            drawP(finals.red, 'fr', 'pf-red');
+            drawP(finals.green, 'fg', 'pf-green');
+        },
+
+        renderTokens: function() {
+            // Borrar fichas viejas
+            document.querySelectorAll('.token').forEach(t => t.remove());
+
+            this.players.forEach(p => {
+                if(p.state === 'win') return;
+
+                const t = document.createElement('div');
+                t.className = `token ${p.css}`;
+
+                // Calcular celda destino
+                let targetId = "";
+                if(p.state === 'perimeter') {
+                    const idx = (p.startIdx + p.pos) % 52;
+                    targetId = `p-${idx}`;
+                } else if (p.state === 'final') {
+                    let pre = "";
+                    if(p.id==='yellow') pre='fy';
+                    if(p.id==='blue') pre='fb';
+                    if(p.id==='red') pre='fr';
+                    if(p.id==='green') pre='fg';
+                    targetId = `${pre}-${p.pos}`;
+                }
+
+                // Insertar DENTRO de la celda correspondiente para centrado perfecto
+                const cell = document.getElementById(targetId);
+                if(cell) {
+                    cell.appendChild(t); // Al ser relative/absolute, se centra solo
+                }
+            });
+        },
+
+        roll: function() {
+            const b = document.getElementById('rollBtn');
+            const d = document.getElementById('diceBox');
+            b.disabled = true;
+            this.waiting = false;
+            let c = 0;
+            const iv = setInterval(() => {
+                d.innerText = Math.floor(Math.random()*6)+1;
+                c++;
+                if(c > 10) {
+                    clearInterval(iv);
+                    this.diceVal = Math.floor(Math.random()*6)+1;
+                    d.innerText = this.diceVal;
+                    this.waiting = true;
+                    this.msg(`¡Salió ${this.diceVal}! Toca la casilla destino.`);
+                }
+            }, 80);
+        },
+
+        clickCell: function(id) {
+            if(!this.waiting) return;
+            const p = this.players[this.turn];
+            
+            let valid = false;
+            let nextPos = p.pos;
+            let nextState = p.state;
+
+            if(p.state === 'perimeter') {
+                if(p.pos + this.diceVal > 50) {
+                    // Entra a pasillo
+                    nextState = 'final';
+                    nextPos = (p.pos + this.diceVal) - 51; 
+                    if(nextPos > 4) { this.msg("¡Toca la META (centro)!"); return; }
+
+                    let pre = "";
+                    if(p.id==='yellow') pre='fy';
+                    if(p.id==='blue') pre='fb';
+                    if(p.id==='red') pre='fr';
+                    if(p.id==='green') pre='fg';
+                    if(id === `${pre}-${nextPos}`) valid = true;
+
+                } else {
+                    // Sigue fuera
+                    nextPos = p.pos + this.diceVal;
+                    let targetIdx = (p.startIdx + nextPos) % 52;
+                    if(id === `p-${targetIdx}`) valid = true;
+                }
+            } 
+            else if (p.state === 'final') {
+                nextPos = p.pos + this.diceVal;
+                if(nextPos > 4) { this.msg("¡Toca la META (centro)!"); return; }
+                
+                let pre = "";
+                if(p.id==='yellow') pre='fy';
+                if(p.id==='blue') pre='fb';
+                if(p.id==='red') pre='fr';
+                if(p.id==='green') pre='fg';
+                if(id === `${pre}-${nextPos}`) valid = true;
+            }
+
+            if(valid) {
+                this.move(nextPos, nextState, false);
+            } else {
+                this.error(id);
+            }
+        },
+
+        checkMeta: function() {
+            if(!this.waiting) return;
+            const p = this.players[this.turn];
+            let win = false;
+            if(p.state === 'perimeter' && (p.pos + this.diceVal > 54)) win = true; 
+            if(p.state === 'final' && (p.pos + this.diceVal > 4)) win = true;
+
+            if(win) this.move(0, 'win', true);
+        },
+
+        move: function(pos, state, win) {
+            const p = this.players[this.turn];
+            p.pos = pos;
+            p.state = state;
+            this.waiting = false;
+            this.renderTokens();
+            setTimeout(() => this.showModal(win), 300);
+        },
+
+        error: function(id) {
+            const el = document.getElementById(id);
+            if(el) {
+                el.classList.add('shake');
+                this.msg("❌ Incorrecto. ¡Cuenta bien!");
+                setTimeout(()=>el.classList.remove('shake'), 500);
+            }
+        },
+
+        showModal: function(win) {
+            const m = document.getElementById('modal');
+            const i = document.getElementById('mIcon');
+            const t = document.getElementById('mTitle');
+            const txt = document.getElementById('mText');
+            if(win) {
+                t.innerText = "¡META!";
+                t.style.color = "gold";
+                i.innerText = bigFinal.i;
+                txt.innerText = bigFinal.t;
+                this.msg("🏆 ¡GANADORES! 🏆");
+            } else {
+                const r = challenges[Math.floor(Math.random()*challenges.length)];
+                t.innerText = "PRUEBA FÍSICA";
+                t.style.color = "#d32f2f";
+                i.innerText = r.i;
+                txt.innerText = r.t;
+            }
+            m.style.display = 'flex';
+        },
+
+        closeModal: function() {
+            document.getElementById('modal').style.display = 'none';
+            this.nextTurn();
+        },
+
+        nextTurn: function() {
+            let limit = 0;
+            do {
+                this.turn = (this.turn + 1) % 4;
+                limit++;
+            } while(this.players[this.turn].state === 'win' && limit < 5);
+
+            const p = this.players[this.turn];
+            const b = document.getElementById('turnBadge');
+            b.innerText = p.name;
+            b.className = `turn-badge ${p.badge}`;
+            document.getElementById('rollBtn').disabled = false;
+            document.getElementById('diceBox').innerText = "🎲";
+            this.msg(`Turno de ${p.name}`);
+        },
+
+        msg: function(t) { document.getElementById('msgBox').innerText = t; }
+    };
+
+    // INICIAR
+    game.init();
+
+</script>
+</body>
+</html>
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ff6f61;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    z-index: 1000;
+    transition: transform 0.2s;
+" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    ⬅ Volver al Menú
+</a>
+<a href="index.html" style="position: fixed; top: 20px; left: 20px; background: #ff6f61; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-weight: bold; border: 2px solid white; z-index: 999;">
+    ⬅ Volver
+</a>

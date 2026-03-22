@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivial Deportes + Cronómetro</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #ff4081;
+            --accent: #ff9800; /* Color para el crono */
+            --correct: #4caf50;
+            --wrong: #f44336;
+            --bg: #e8eaf6;
+            --card-bg: #ffffff;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text);
+            user-select: none;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 700px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            border-top: 5px solid var(--primary);
+        }
+
+        /* --- PANTALLA DE INICIO --- */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-start {
+            background: var(--primary);
+            color: white;
+            font-size: 1.5rem;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(63, 81, 181, 0.4);
+        }
+        .btn-start:hover { transform: scale(1.05); }
+
+        /* --- JUEGO --- */
+        #game-screen { display: none; }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .progress-info {
+            font-size: 0.9rem;
+            color: #777;
+            font-weight: bold;
+        }
+
+        /* Contenedor de la derecha (Puntos y Tiempo) */
+        .stats-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .score-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* ESTILO DEL CRONÓMETRO */
+        .timer-badge {
+            background: #333;
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace; /* Fuente tipo digital */
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid #555;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            min-width: 80px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .question-box {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #222;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .header-bar { flex-direction: column; gap: 10px; }
+        }
+
+        .option-btn {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #e3f2fd;
+            border-color: var(--primary);
+        }
+
+        .option-btn:disabled { cursor: default; opacity: 0.9; }
+
+        .correct { background-color: var(--correct) !important; color: white !important; border-color: var(--correct) !important; }
+        .incorrect { background-color: var(--wrong) !important; color: white !important; border-color: var(--wrong) !important; }
+
+        /* Feedback */
+        .feedback-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f9f9f9;
+            border-left: 5px solid #ccc;
+            text-align: left;
+            display: none;
+            animation: slideUp 0.3s;
+        }
+        
+        .feedback-area.is-correct { border-color: var(--correct); background: #e8f5e9; }
+        .feedback-area.is-wrong { border-color: var(--wrong); background: #ffebee; }
+
+        .explanation { font-size: 0.95rem; color: #555; margin-top: 5px; }
+
+        .btn-next {
+            margin-top: 20px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: none; 
+            box-shadow: 0 4px 0 #000;
+        }
+        .btn-next:active { transform: translateY(4px); box-shadow: none; }
+
+        /* --- PANTALLA FINAL --- */
+        #end-screen { display: none; flex-direction: column; align-items: center; }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .final-time {
+            font-size: 1.5rem;
+            color: #333;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            border: 2px solid #ccc;
+        }
+
+        .final-msg { font-size: 1.3rem; margin-bottom: 30px; color: #555; max-width: 90%; }
+
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+        @keyframes slideUp { from {transform: translateY(20px); opacity:0;} to {transform: translateY(0); opacity:1;} }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="start-screen">
+            <div style="font-size: 4rem;">⏱️🏆</div>
+            <h1>Trivial Deportes</h1>
+            <p class="subtitle">Demuestra que eres el más rápido y sabio en Datchball, Ringol, Twincon, Bijbol y Pinfuvote.</p>
+            <button class="btn-start" onclick="quiz.start()">¡CRONO EN MARCHA!</button>
+        </div>
+
+        <div id="game-screen">
+            <div class="header-bar">
+                <div class="progress-info" id="progressText">Pregunta 1/10</div>
+                
+                <div class="stats-right">
+                    <div class="score-badge">Puntos: <span id="scoreVal">0</span></div>
+                    <div class="timer-badge" id="timerDisplay">00:00</div>
+                </div>
+            </div>
+
+            <div class="question-box" id="questionText">¿...?</div>
+
+            <div class="options-grid" id="optionsContainer"></div>
+
+            <div class="feedback-area" id="feedback">
+                <strong id="feedbackTitle"></strong>
+                <p class="explanation" id="feedbackText">...</p>
+            </div>
+
+            <button class="btn-next" id="nextBtn" onclick="quiz.next()">Siguiente ➡</button>
+        </div>
+
+        <div id="end-screen">
+            <div style="font-size: 4rem;">🏁</div>
+            <h2>FIN DEL JUEGO</h2>
+            
+            <div class="final-score" id="finalScore">0/10</div>
+            <div class="final-time" id="finalTimeResult">Tiempo: 00:00</div>
+            
+            <p class="final-msg" id="finalMsg">...</p>
+            
+            <button class="btn-start" onclick="quiz.restart()">Reintentar</button>
+        </div>
+
+    </div>
+
+<script>
+    // --- DATOS ---
+    const questionsDB = [
+        {
+            sport: "Datchball",
+            q: "En Datchball, ¿con cuántas pelotas se juega a la vez?",
+            options: ["1 pelota", "2 pelotas", "3 pelotas", "5 pelotas"],
+            correct: 2,
+            info: "Se juega con 3 pelotas para fomentar la atención dividida."
+        },
+        {
+            sport: "Bijbol",
+            q: "¿Cómo es la pelota oficial de Bijbol?",
+            options: ["Pequeña y dura", "Gigante (50cm+)", "Ovalada", "Con asas"],
+            correct: 1,
+            info: "Es una pelota gigante que solo se puede golpear, no agarrar."
+        },
+        {
+            sport: "Pinfuvote",
+            q: "¿Qué partes del cuerpo valen en Pinfuvote?",
+            options: ["Solo manos", "Solo pies", "Manos y cabeza", "Todo el cuerpo"],
+            correct: 3,
+            info: "Puedes golpear con pies, manos, cabeza y cualquier parte."
+        },
+        {
+            sport: "Twincon",
+            q: "¿Cómo se marca un punto en Twincon?",
+            options: ["Gol en portería", "Tirando un cono", "Pasando una línea", "Encestando"],
+            correct: 1,
+            info: "El objetivo es derribar uno de los conos del equipo rival."
+        },
+        {
+            sport: "Datchball",
+            q: "¿Qué pasa si coges una pelota 'al aire'?",
+            options: ["Te eliminan", "Eliminas al lanzador y salvas a uno tuyo", "Se para el juego", "Ganas 1 punto"],
+            correct: 1,
+            info: "Hacer un 'aire' es la mejor jugada defensiva: salvas y eliminas."
+        },
+        {
+            sport: "Ringol",
+            q: "¿Cuántos toques seguidos puedes dar en Ringol?",
+            options: ["Infinitos", "Solo uno (un golpeo)", "Tres pasos", "Conducir con el pie"],
+            correct: 1,
+            info: "El Ringol se basa en el golpeo único (one touch)."
+        },
+        {
+            sport: "Bijbol",
+            q: "¿Quién puede entrar en el área de portería en Bijbol?",
+            options: ["Nadie", "Solo el portero", "Solo los defensas", "Cualquiera"],
+            correct: 0,
+            info: "El área es zona prohibida para todos los jugadores."
+        },
+        {
+            sport: "Pinfuvote",
+            q: "¿Cuántos botes se permiten entre toques?",
+            options: ["Ninguno", "Un bote máximo", "Dos botes", "Libre"],
+            correct: 1,
+            info: "Se permite un bote en el suelo entre toque y toque."
+        },
+        {
+            sport: "Twincon",
+            q: "¿Qué pasa si pisas el área de tu propio cono?",
+            options: ["Nada", "Punto/Penalti para el rival", "Se repite", "Se mueve el cono"],
+            correct: 1,
+            info: "Invadir el área prohibida defensiva se sanciona con punto rival."
+        },
+        {
+            sport: "General",
+            q: "¿Qué valor es clave en estos deportes?",
+            options: ["Violencia", "Individualismo", "Fair Play y equipos mixtos", "Ganar siempre"],
+            correct: 2,
+            info: "Fomentan la coeducación, el respeto y la honestidad."
+        }
+    ];
+
+    // --- LÓGICA ---
+    const quiz = {
+        currentQ: 0,
+        score: 0,
+        shuffledQuestions: [],
+        
+        // Variables del Cronómetro
+        timerInterval: null,
+        totalSeconds: 0,
+
+        start: function() {
+            this.shuffledQuestions = questionsDB; // Se podría usar sort random aquí
+            this.currentQ = 0;
+            this.score = 0;
+            
+            // Reiniciar Crono
+            this.totalSeconds = 0;
+            this.startTimer();
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            this.updateScoreUI();
+            this.loadQuestion();
+        },
+
+        // --- FUNCIONES DEL CRONÓMETRO ---
+        startTimer: function() {
+            clearInterval(this.timerInterval);
+            this.updateTimerUI(); // Reset visual
+            this.timerInterval = setInterval(() => {
+                this.totalSeconds++;
+                this.updateTimerUI();
+            }, 1000);
+        },
+
+        stopTimer: function() {
+            clearInterval(this.timerInterval);
+        },
+
+        updateTimerUI: function() {
+            // Formatear a MM:SS
+            const minutes = Math.floor(this.totalSeconds / 60);
+            const seconds = this.totalSeconds % 60;
+            
+            const minStr = minutes < 10 ? "0" + minutes : minutes;
+            const secStr = seconds < 10 ? "0" + seconds : seconds;
+            
+            document.getElementById('timerDisplay').innerText = `${minStr}:${secStr}`;
+        },
+
+        // --- FUNCIONES DEL JUEGO ---
+        loadQuestion: function() {
+            const data = this.shuffledQuestions[this.currentQ];
+            
+            document.getElementById('progressText').innerText = `Pregunta ${this.currentQ + 1} de ${this.shuffledQuestions.length} (${data.sport})`;
+            document.getElementById('questionText').innerText = data.q;
+            
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = ''; 
+
+            data.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => this.checkAnswer(index, btn);
+                container.appendChild(btn);
+            });
+        },
+
+        checkAnswer: function(selectedIndex, btnElement) {
+            const data = this.shuffledQuestions[this.currentQ];
+            const feedbackArea = document.getElementById('feedback');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackText = document.getElementById('feedbackText');
+            const allBtns = document.querySelectorAll('.option-btn');
+
+            allBtns.forEach(b => b.disabled = true);
+
+            if(selectedIndex === data.correct) {
+                this.score++;
+                this.updateScoreUI();
+                btnElement.classList.add('correct');
+                feedbackArea.className = 'feedback-area is-correct';
+                feedbackTitle.innerText = "¡CORRECTO! ✅";
+                feedbackTitle.style.color = "var(--correct)";
+            } else {
+                btnElement.classList.add('incorrect');
+                allBtns[data.correct].classList.add('correct');
+                feedbackArea.className = 'feedback-area is-wrong';
+                feedbackTitle.innerText = "¡INCORRECTO! ❌";
+                feedbackTitle.style.color = "var(--wrong)";
+            }
+
+            feedbackText.innerText = data.info;
+            feedbackArea.style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        },
+
+        next: function() {
+            this.currentQ++;
+            if(this.currentQ < this.shuffledQuestions.length) {
+                this.loadQuestion();
+            } else {
+                this.finish();
+            }
+        },
+
+        finish: function() {
+            this.stopTimer(); // Parar reloj
+
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+            
+            const finalScoreEl = document.getElementById('finalScore');
+            const finalMsgEl = document.getElementById('finalMsg');
+            const finalTimeEl = document.getElementById('finalTimeResult');
+
+            // Formatear tiempo final
+            const minutes = Math.floor(this.totalSeconds / 60);
+            const seconds = this.totalSeconds % 60;
+            const timeString = `${minutes < 10 ? "0"+minutes : minutes}:${seconds < 10 ? "0"+seconds : seconds}`;
+
+            finalScoreEl.innerText = `${this.score} / ${this.shuffledQuestions.length}`;
+            finalTimeEl.innerText = `Tiempo total: ${timeString}`;
+            
+            if(this.score === 10) {
+                finalMsgEl.innerText = "¡PERFECTO! 🏆 Has demostrado ser un experto.";
+            } else if (this.score >= 7) {
+                finalMsgEl.innerText = "¡Muy bien! 🥈 Conoces muy bien las reglas.";
+            } else if (this.score >= 5) {
+                finalMsgEl.innerText = "Aprobado 🥉. ¡Pero seguro que puedes mejorar el tiempo!";
+            } else {
+                finalMsgEl.innerText = "¡Sigue entrenando! 💪 Repasa las reglas e inténtalo de nuevo.";
+            }
+        },
+
+        restart: function() {
+            this.start();
+        },
+
+        updateScoreUI: function() {
+            document.getElementById('scoreVal').innerText = this.score;
+        }
+    };
+
+</script>
+</body>
+</html>
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ff6f61;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    z-index: 1000;
+    transition: transform 0.2s;
+" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    ⬅ Volver al Menú
+</a>

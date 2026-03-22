@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reglas Básicas del Ajedrez - EF</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', Arial, sans-serif; /* Fuente amigable para niños */
+            background-color: #2c3e50; /* Mismo fondo que el juego */
+            color: #ecf0f1;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #34495e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #f1c40f;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #f1c40f;
+        }
+
+        /* --- Estilos de las Tarjetas de Piezas --- */
+        .pieces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .piece-card {
+            background-color: #fff;
+            color: #2c3e50;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid #bdc3c7;
+            transition: transform 0.3s ease;
+        }
+
+        .piece-card:hover {
+            transform: translateY(-5px);
+            border-bottom-color: #f1c40f;
+        }
+
+        .piece-icon {
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 10px;
+            /* Sombra para que se vea bien la pieza blanca sobre fondo blanco */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .piece-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #d35400;
+        }
+
+        .piece-desc {
+            font-size: 1.1rem;
+            text-align: left;
+        }
+        
+        .piece-desc ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .piece-desc li {
+            margin-bottom: 8px;
+        }
+
+        /* Colores específicos para el ejemplo */
+        .white-example { color: #ecf0f1; text-shadow: 1px 1px 3px #000;}
+
+        /* --- Sección de Reglas Finales --- */
+        .important-rules {
+            margin-top: 40px;
+            background-color: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .important-rules h2 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        /* --- Botón de Jugar --- */
+        .play-button-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .play-btn {
+            background-color: #27ae60;
+            color: white;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #219653;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        .play-btn:hover {
+            background-color: #2ecc71;
+            box-shadow: 0 2px 0 #219653;
+            transform: translateY(3px);
+        }
+
+        /* Responsive para móviles pequeños */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .piece-card { padding: 15px; }
+            .piece-icon { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👑 Iniciación al Ajedrez 👑</h1>
+    
+    <div class="intro">
+        <strong>El Objetivo del Juego:</strong><br>
+        ¡Es una batalla entre dos ejércitos! Tu misión es atrapar al <strong>Rey</strong> del oponente. Si lo atrapas y no tiene escapatoria, ¡has ganado! (A esto se le llama "Jaque Mate").
+    </div>
+
+    <div class="pieces-grid">
+        <div class="piece-card">
+            <div class="piece-icon white-example">♖</div>
+            <div class="piece-name">La Torre</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>Se mueve en líneas rectas: arriba, abajo, izquierda o derecha.</li>
+                    <li>¡Tantas casillas como quiera!</li>
+                    <li>Es como un castillo rodante.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="piece-card">
+            <div class="piece-icon white-example">♗</div>
+            <div class="piece-name">El Alfil</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>Solo se mueve en <strong>diagonal</strong> (como una "X").</li>
+                    <li>Si empieza en una casilla blanca, ¡siempre estará en casillas blancas!</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="piece-card">
+            <div class="piece-icon white-example">♕</div>
+            <div class="piece-name">La Dama (Reina)</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>¡Es la superheroína del equipo!</li>
+                    <li>Puede moverse como una Torre (recto) Y como un Alfil (diagonal).</li>
+                    <li>Es la pieza más poderosa.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="piece-card">
+            <div class="piece-icon white-example">♘</div>
+            <div class="piece-name">El Caballo</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>Se mueve en forma de letra <strong>"L"</strong> mayúscula (dos pasos a un lado y uno al otro).</li>
+                    <li><strong>¡Es el único que puede saltar por encima de otras piezas!</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="piece-card">
+            <div class="piece-icon white-example">♙</div>
+            <div class="piece-name">El Peón</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>Son los valientes soldados de primera línea.</li>
+                    <li>Solo caminan hacia adelante, un paso a la vez.</li>
+                    <li><strong>¡OJO!</strong> Para comer a un enemigo, lo hacen en diagonal (un pasito).</li>
+                    <li>*(Truco: En su primer movimiento, pueden avanzar dos pasos si quieren).*</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="piece-card" style="border-bottom-color: #f1c40f; background-color: #fffde7;">
+            <div class="piece-icon white-example" style="color: #f1c40f; text-shadow: 1px 1px 2px black;">♔</div>
+            <div class="piece-name">El Rey</div>
+            <div class="piece-desc">
+                <ul>
+                    <li>¡Es el Jefe! La pieza más importante.</li>
+                    <li>Se mueve solo un pasito en cualquier dirección (recto o diagonal).</li>
+                    <li>Hay que protegerlo a toda costa. Si lo atrapan, se acaba el juego.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="important-rules">
+        <h2>🚨 Reglas de Oro para empezar 🚨</h2>
+        <ul>
+            <li><strong>Cómo comer piezas:</strong> Si tu pieza puede moverse a una casilla donde hay una pieza enemiga, ¡puedes comértela! Quitas la suya y pones la tuya en su lugar.</li>
+            <li><strong>No te puedes comer a ti mismo:</strong> No puedes moverte a una casilla donde ya hay una pieza de tu color.</li>
+            <li><strong>Turnos:</strong> Las Blancas siempre mueven primero. Luego las Negras, y así sucesivamente. ¡Solo un movimiento por turno!</li>
+        </ul>
+    </div>
+
+    <div class="play-button-container">
+        <a href="ajedrez.html" class="play-btn">🎮 ¡Entendido, vamos a Jugar! 🎮</a>
+    </div>
+
+</div>
+
+</body>
+</html>
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ff6f61;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    z-index: 1000;
+    transition: transform 0.2s;
+" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    ⬅ Volver al Menú
+</a>

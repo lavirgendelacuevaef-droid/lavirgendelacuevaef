@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Web EF - Recursos Integradores</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        header {
+            position: relative;
+            text-align: center;
+            color: white;
+            background-color: #2c3e50;
+        }
+        .banner-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+            opacity: 0.8;
+        }
+        .header-title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            margin: 0;
+            padding: 15px 0;
+            font-size: 2em;
+            letter-spacing: 2px;
+        }
+        nav {
+            background-color: #d1e0e5;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        nav a {
+            text-decoration: none;
+            color: #2c3e50;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            border: 1px solid #bdc3c7;
+            transition: all 0.3s ease;
+        }
+        nav a:hover {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Centra las tarjetas al no haber panel lateral */
+            max-width: 1200px;
+            margin: 30px auto;
+            gap: 25px;
+            padding: 0 15px;
+        }
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 300px; /* Ancho fijo para que todas se vean iguales */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .card h3 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        .card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+        }
+        .card p {
+            flex-grow: 1; /* Empuja los enlaces hacia abajo para que queden alineados */
+        }
+        .card-links {
+            margin-top: auto;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card a {
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: bold;
+            padding-top: 10px;
+        }
+        .card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="fondo_virgen.jpg" alt="Virgen con paraguas" class="banner-img">
+        <h1 class="header-title">PORTAL WEB EF - RECURSOS INTEGRADORES</h1>
+    </header>
+
+    <nav>
+        <a href="Ajedrez_EF_Premium_reglasi.html">Ajedrez Premium</a>
+        <a href="reglas_ajedrez.html">Reglas Ajedrez</a>
+        <a href="parchis_ef8.html">Parchís (v8)</a>
+        <a href="Semáforo_EF_música.html">Semáforo Musical</a>
+        <a href="Trivial_ef2.html">Trivial Reto</a>
+        <a href="Yoga_EF_5.html">Yoga Sesión</a>
+    </nav>
+
+    <div class="container">
+        
+        <div class="card">
+            <h3>Ajedrez</h3>
+            <img src="imagen_ajedrez.jpg" alt="Ajedrez">
+            <p>Normas y reglas premium para las sesiones de ajedrez.</p>
+            <div class="card-links">
+                <a href="Ajedrez_EF_Premium_reglasi.html">Ajedrez Premium</a>
+                <a href="reglas_ajedrez.html">Reglas Básicas</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Parchís</h3>
+            <img src="imagen_parchís.png" alt="Parchís">
+            <p>Tablero e instrucciones para el parchís de Educación Física.</p>
+            <div class="card-links">
+                <a href="parchis_ef8.html">Jugar al Parchís</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Música y Movimiento</h3>
+            <img src="imagen_semáforo.jpg" alt="Semáforo Musical">
+            <p>Dinámica del semáforo con integración musical.</p>
+            <div class="card-links">
+                <a href="Semáforo_EF_música.html">Abrir Semáforo</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Trivial</h3>
+            <img src="imagen_trivial.jpg" alt="Trivial">
+            <p>Juego de preguntas y respuestas adaptado a EF.</p>
+            <div class="card-links">
+                <a href="Trivial_ef2.html">Iniciar Trivial</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Yoga</h3>
+            <img src="imagen_yoga.jpg" alt="Yoga">
+            <p>Sesiones guiadas de relajación y posturas.</p>
+            <div class="card-links">
+                <a href="Yoga_EF.html">Sesión de Yoga</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

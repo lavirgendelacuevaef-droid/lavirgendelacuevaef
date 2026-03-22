@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Genial EF - Música y Tiempos</title>
+    <style>
+        /* --- ESTILOS (CSS) --- */
+        :root {
+            --primary: #6ab04c;   /* Verde natural */
+            --secondary: #badc58; /* Verde claro */
+            --accent: #f0932b;    /* Naranja */
+            --pause: #f1c40f;     /* Amarillo */
+            --stop: #e74c3c;      /* Rojo */
+            --text: #2c3e50;      /* Gris oscuro */
+            --bg: #f7f1e3;        /* Crema */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Títulos */
+        h1 { color: var(--primary); margin-bottom: 10px; font-size: 2.5rem; }
+        h2 { color: var(--accent); margin-top: 0; }
+
+        /* Pantallas */
+        .screen {
+            display: none; /* Ocultas por defecto */
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .screen.active {
+            display: block; /* Solo la que tenga esta clase se ve */
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Botones */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s, filter 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .btn:active { transform: scale(0.95); }
+
+        /* Colores Botones */
+        .btn-c1 { background-color: #48dbfb; color: #333; }
+        .btn-c2 { background-color: #1dd1a1; color: #333; }
+        .btn-c3 { background-color: #ff9f43; color: #333; }
+        .btn-pause { background-color: var(--pause); color: #333; }
+        .btn-stop { background-color: var(--stop); }
+        .btn-restart { background-color: var(--primary); }
+
+        /* Caja de Imagen */
+        .image-box {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #eee;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 4px solid var(--secondary);
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pose-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background-color: white;
+        }
+
+        /* Capa de Pausa */
+        .pause-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--text);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        /* Barra de Tiempo */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background-color: #ddd;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 1s linear;
+        }
+
+        .timer-text {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="vivaldi.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="screen-menu" class="screen active">
+        <h1>🧘‍♂️ Yoga Escolar 🧘‍♀️</h1>
+        <p>Elige el nivel para comenzar la clase musical:</p>
+        <div class="btn-container">
+            <button class="btn btn-c1" onclick="startGame(1)">1º Ciclo (25s)</button>
+            <button class="btn btn-c2" onclick="startGame(2)">2º Ciclo (30s)</button>
+            <button class="btn btn-c3" onclick="startGame(3)">3º Ciclo (45s)</button>
+        </div>
+    </div>
+
+    <div id="screen-activity" class="screen">
+        <h2 id="cycle-display">Ciclo</h2>
+        <h1 id="pose-title" style="font-size: 2rem;">Nombre Postura</h1>
+
+        <div class="image-box">
+            <div id="pause-overlay" class="pause-overlay">
+                <div>PAUSA ⏸️</div>
+                <div style="font-size: 1rem; margin-top: 10px;">Corregid la postura</div>
+            </div>
+            
+            <img id="pose-image" class="pose-img" src="" alt="Yoga Pose" onerror="this.src='https://placehold.co/600x400?text=Imagen+No+Disponible'">
+        </div>
+
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+            <div id="timer-number" class="timer-text">00 s</div>
+        </div>
+
+        <div class="btn-container">
+            <button id="btn-pause" class="btn btn-pause" onclick="togglePause()">Pausa ⏸️</button>
+            <button class="btn btn-stop" onclick="stopGame()">Salir ⏹️</button>
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <h1>¡Namasté! 🙏</h1>
+        <p>¡Clase completada! La música parará al volver.</p>
+        <div class="btn-container">
+            <button class="btn btn-restart" onclick="location.reload()">Volver al Inicio</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN ---
+        
+        // IMÁGENES
+        const poses = [
+            { name: "La Montaña (Tadasana)", url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80" },
+            { name: "El Árbol (Vrikshasana)", url: "https://cdn.pixabay.com/photo/2017/03/26/21/54/yoga-2176668_960_720.jpg" },
+            { name: "El Guerrero (Virabhadrasana)", url: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80" },
+            { name: "Perro Boca Abajo", url: "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=600" },
+            { name: "La Cobra (Bhujangasana)", url: "https://images.unsplash.com/photo-1599447421416-3414500d18a5?auto=format&fit=crop&w=600&q=80" },
+            { name: "La Mariposa (Baddha Konasana)", url: "https://images.unsplash.com/photo-1599447421306-32693d8b7883?auto=format&fit=crop&w=600&q=80" },
+            { name: "Flor de Loto (Padmasana)", url: "https://images.unsplash.com/photo-1593164842264-8546044918ba?auto=format&fit=crop&w=600&q=80" }
+        ];
+
+        // --- TIEMPOS ---
+        const cycles = {
+            1: { time: 25, count: 4, name: "1º Ciclo (Iniciación)" }, 
+            2: { time: 30, count: 5, name: "2º Ciclo (Intermedio)" },
+            3: { time: 45, count: 7, name: "3º Ciclo (Avanzado)" }
+        };
+
+        // Variables del sistema
+        let currentCycle = null;
+        let poseIndex = 0;
+        let timeLeft = 0;
+        let timer = null;
+        let isPaused = false;
+        let activePoses = [];
+
+        // Referencias HTML
+        const screenMenu = document.getElementById('screen-menu');
+        const screenActivity = document.getElementById('screen-activity');
+        const screenEnd = document.getElementById('screen-end');
+        
+        const music = document.getElementById('bg-music');
+        const imgEl = document.getElementById('pose-image');
+        const titleEl = document.getElementById('pose-title');
+        const cycleEl = document.getElementById('cycle-display');
+        const barEl = document.getElementById('progress-bar');
+        const timerNum = document.getElementById('timer-number');
+        const pauseOverlay = document.getElementById('pause-overlay');
+        const btnPause = document.getElementById('btn-pause');
+
+        // --- FUNCIONES ---
+
+        function startGame(cycleId) {
+            currentCycle = cycles[cycleId];
+            poseIndex = 0;
+            activePoses = poses.slice(0, currentCycle.count);
+            
+            // Cambio de pantalla
+            screenMenu.classList.remove('active');
+            screenActivity.classList.add('active');
+            
+            // MÚSICA RELAJANTE
+            music.volume = 0.5;
+            music.currentTime = 0; // Empieza desde el principio
+            var playPromise = music.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    console.log("Música reproduciendo correctamente.");
+                })
+                .catch(error => {
+                    console.log("El navegador bloqueó el audio. Necesita interacción.");
+                });
+            }
+
+            loadPose();
+        }
+
+        function loadPose() {
+            if (poseIndex >= activePoses.length) {
+                finishGame();
+                return;
+            }
+
+            let pose = activePoses[poseIndex];
+            cycleEl.innerText = currentCycle.name;
+            titleEl.innerText = pose.name;
+            imgEl.src = pose.url;
+
+            // Resetear variables de tiempo
+            timeLeft = currentCycle.time;
+            isPaused = false;
+            
+            // Resetear interfaz visual
+            updateDisplay();
+            pauseOverlay.style.display = 'none';
+            btnPause.innerText = "Pausa ⏸️";
+            btnPause.style.backgroundColor = "#f1c40f";
+
+            // Arrancar cronómetro
+            clearInterval(timer);
+            timer = setInterval(tick, 1000);
+        }
+
+        function tick() {
+            if (!isPaused) {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    poseIndex++; // Siguiente postura
+                    loadPose();
+                }
+            }
+        }
+
+        function updateDisplay() {
+            timerNum.innerText = timeLeft + " s";
+            let percent = (timeLeft / currentCycle.time) * 100;
+            barEl.style.width = percent + "%";
+            
+            // Colores semáforo
+            if(percent > 50) barEl.style.background = "#6ab04c"; // Verde
+            else if(percent > 20) barEl.style.background = "#f0932b"; // Naranja
+            else barEl.style.background = "#e74c3c"; // Rojo
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                music.pause(); // Pausa también la música
+                pauseOverlay.style.display = "flex";
+                btnPause.innerText = "Seguir ▶️";
+                btnPause.style.backgroundColor = "#6ab04c";
+            } else {
+                music.play(); // Reanuda la música
+                pauseOverlay.style.display = "none";
+                btnPause.innerText = "Pausa ⏸️";
+                btnPause.style.backgroundColor = "#f1c40f";
+            }
+        }
+
+        function stopGame() {
+            clearInterval(timer);
+            music.pause();
+            if(confirm("¿Queréis salir de la clase?")) {
+                location.reload();
+            } else {
+                if(!isPaused) music.play();
+            }
+        }
+
+        function finishGame() {
+            clearInterval(timer);
+            music.pause(); // Parar música al final
+            screenActivity.classList.remove('active');
+            screenEnd.classList.add('active');
+        }
+
+    </script>
+</body>
+</html>
