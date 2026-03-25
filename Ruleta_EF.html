@@ -100,6 +100,7 @@
     </style>
 </head>
 <body>
+    <audio id="musicaFondo" src="Musica_ruleta.mp3" loop></audio>
 
     <a href="index.html" class="btn-volver">⬅ Volver al Menú</a>
 
@@ -160,6 +161,7 @@
         }
 
         function girar() {
+            document.getElementById("musicaFondo").play();
             if (girando) return;
             girando = true;
             document.getElementById("resultado").innerText = "Girando...";
