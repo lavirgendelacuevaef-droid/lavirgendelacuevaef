@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de los Retos - EF</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .btn-volver {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .btn-volver:hover {
+            background-color: #2980b9;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-top: 80px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .ruleta-container {
+            position: relative;
+            margin: 20px auto;
+            width: 320px;
+            height: 320px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 5px solid #34495e;
+        }
+
+        /* El flechazo que indica el premio */
+        .marcador {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #e74c3c;
+            z-index: 10;
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            background-color: #e67e22;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4);
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #resultado {
+            margin-top: 30px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #27ae60;
+            min-height: 50px;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-volver">⬅ Volver al Menú</a>
+
+    <h1>🎡 Ruleta de los Retos</h1>
+
+    <div class="ruleta-container">
+        <div class="marcador"></div>
+        <canvas id="ruleta" width="400" height="400"></canvas>
+    </div>
+
+    <button id="btnTirar" onclick="girar()">¡GIRAR!</button>
+
+    <div id="resultado">¿Qué reto tocará?</div>
+
+    <script>
+        const canvas = document.getElementById("ruleta");
+        const ctx = canvas.getContext("2d");
+
+        // Aquí puedes cambiar los retos de la ruleta a tu gusto
+        const opciones = [
+            "10 Sentadillas", 
+            "Bailar Macarena", 
+            "Equilibrio 30s", 
+            "5 Flexiones", 
+            "15 Jumping Jacks", 
+            "Plancha 20s", 
+            "Tocar puntas 10s", 
+            "Trotar 1 min"
+        ];
+
+        const colores = [
+            "#3498db", "#e74c3c", "#f1c40f", "#2ecc71", 
+            "#9b59b6", "#e67e22", "#1abc9c", "#34495e"
+        ];
+
+        let anguloActual = 0;
+        let girando = false;
+
+        function dibujarRuleta() {
+            const arc = Math.PI / (opciones.length / 2);
+            for (let i = 0; i < opciones.length; i++) {
+                const angle = anguloActual + i * arc;
+                ctx.beginPath();
+                ctx.arc(200, 200, 200, angle, angle + arc, false);
+                ctx.lineTo(200, 200);
+                ctx.fillStyle = colores[i];
+                ctx.fill();
+                ctx.save();
+
+                ctx.translate(200 + Math.cos(angle + arc / 2) * 130, 200 + Math.sin(angle + arc / 2) * 130);
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(opciones[i], 0, 0);
+                ctx.restore();
+            }
+        }
+
+        function girar() {
+            if (girando) return;
+            girando = true;
+            document.getElementById("resultado").innerText = "Girando...";
+            
+            const girosExtra = Math.floor(Math.random() * 5) + 5; // Entre 5 y 10 vueltas extra
+            const premioIndex = Math.floor(Math.random() * opciones.length); // Elige el ganador
+            const arc = (2 * Math.PI) / opciones.length;
+            
+            // Calculamos el ángulo final para que caiga en la opción ganadora
+            // Se resta Math.PI/2 porque el marcador está arriba (a 90 grados o Pi/2)
+            const anguloDestino = (girosExtra * 2 * Math.PI) - (premioIndex * arc) - (arc / 2) - (Math.PI / 2);
+            
+            let tiempoInicio = null;
+            const duracion = 4000; // 4 segundos de giro
+
+            function animar(timestamp) {
+                if (!tiempoInicio) tiempoInicio = timestamp;
+                const progreso = timestamp - tiempoInicio;
+                
+                // Función easeOut para que frene poco a poco
+                const easeOut = 1 - Math.pow(1 - Math.min(progreso / duracion, 1), 3);
+                anguloActual = anguloDestino * easeOut;
+                
+                ctx.clearRect(0, 0, 400, 400);
+                dibujarRuleta();
+
+                if (progreso < duracion) {
+                    requestAnimationFrame(animar);
+                } else {
+                    girando = false;
+                    anguloActual = anguloActual % (2 * Math.PI); // Normalizar ángulo
+                    document.getElementById("resultado").innerText = "🔥 " + opciones[premioIndex] + " 🔥";
+                }
+            }
+            requestAnimationFrame(animar);
+        }
+
+        dibujarRuleta();
+    </script>
+</body>
+</html>
